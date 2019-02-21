@@ -65,13 +65,14 @@ int main() {
     if (ibus.read(data, ch) == 0) {
       // A complete message has been read
       led1 = !led1;
-      
+
       for (int i = 0; i < 6; i++) printf("%d ", data[i]);
       printf("\n\r");
 
       //channel 1 is steering
       steer.pulsewidth_us(data[0]);
 
+      /*
       // channel 2 is throttle/brake control
       if(data[1] >= 1500){
         //forward
@@ -83,7 +84,8 @@ int main() {
         regen_brake = -(data[1] - 1500) / 500.0;
         //hydro_brake = 1;
       }
-
+      */
+      
       //channel 3 is hydrolic hydrolic brake
       if(data[2] > 1500){
         // engage the brake as fast as possible
