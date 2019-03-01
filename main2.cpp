@@ -52,12 +52,15 @@ int main()
             // channel 4 is hydro brake
             const int brakeMode = data[3] > 1750;
 
-            if (data[1] >= 1500) {
+            if (data[1] >= 1550) {
                 // throttle on. Scaling with pull
                 regen_pwm = 0;
                 hydro_brake.pulsewidth_us(1000);
                 throttle_pwm.write(float(data[1] - 1500) / 500);
                 printf("throttle %f", float(data[1] - 1500) / 500);
+            } else if (data[1] >= 1450 and data[1] <= 1550){
+                regen_pwm = 0;
+                throttle_pwm = 0;
             } else {
                 throttle_pwm = 0;
                 // brake according to brakeMode
