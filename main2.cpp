@@ -52,6 +52,7 @@ int main()
             // channel 4 is hydro brake
             const int brakeMode = data[3] > 1750;
 
+            // channel 2 is throttle and regen brake
             if (data[1] >= 1550) {
                 // throttle on. Scaling with pull
                 regen_pwm = 0;
