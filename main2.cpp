@@ -17,10 +17,11 @@ PwmOut throttle_pwm(A6);
 PwmOut regen_pwm(A5);
 
 PwmOut steer(D6);
-PwmOut hydro_brake(D3);
-DigitalOut forward(D11);
-DigitalOut reverse__(D12);
-DigitalOut ignition(D9);
+DigitalOut hydro_brake_a(D3);
+DigitalOut hydro_brake_b(D4);
+DigitalOut tractionForward(D11);
+DigitalOut tractionReverse(D12);
+DigitalOut foot_switch(D9);
 //Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial receiver(NC, D4, 115200);  //uart 1
 
@@ -31,6 +32,7 @@ int main()
 
     throttle_pwm.period(1e-3);
     steer.period(20e-3);
+    foot_switch = 0;
 
     printf("Starting loop\n\r");
 
@@ -40,9 +42,11 @@ int main()
         if (ibus.read(data, ch) == 0) {
             // A complete message has been read
             led1 = !led1;
+            foot_switch = 0;
 
             for (int i = 0; i < 6; i++) printf("%d ", data[i]);
             printf("\n\r");
+            foot_switch = 0;
 
             // channel 1 is steering
             // left is from 1000 to 1500
@@ -55,19 +59,26 @@ int main()
             // channel 2 is throttle and regen brake
             if (data[1] >= 1550) {
                 // throttle on. Scaling with pull
+                foot_switch = 1;
                 regen_pwm = 0;
-                hydro_brake.pulsewidth_us(1000);
+                hydro_brake_a = 1;
+                hydro_brake_b = 0;
                 throttle_pwm.write(float(data[1] - 1500) / 500);
                 printf("throttle %f", float(data[1] - 1500) / 500);
             } else if (data[1] >= 1450 and data[1] <= 1550){
+                foot_switch = 0;
                 regen_pwm = 0;
                 throttle_pwm = 0;
+                hydro_brake_a = 1;
+                hydro_break_b = 0;
             } else {
+                foot_switch = 0;
                 throttle_pwm = 0;
                 // brake according to brakeMode
                 if(brakeMode == 1) {
                     // using hydro
-                    hydro_brake.pulsewidth_us(2000);
+                    hydro_brake_a = 0;
+                    hydro_brake_b = 0;
                 } else {
                     //brake using regen
                     regen_pwm = 1 - (float(data[1] - 1000) / 500);
@@ -76,14 +87,19 @@ int main()
 
             // channel 3 is gear. Forward or Reverse
             if(data[2] == 1000) {
-                // In foward gear.
-                // hydro_brake.pulsewidth_us(2000);
-                reverse__ = 0;
-                forward = 1;
+                // In foward gear
+                foot_switch = 0;
+                tractionReverse = 0;
+                tractionForward = 1;
+                hydro_brake_a = 1;
+                hydro_brake_b = 0;
             } else {
-                // In reverse gear.
-                forward = 0;
-                reverse__ = 1;
+                // In reverse gear
+                foot_switch = 0;
+                tractionForward = 0;
+                tractionReverse = 1;
+                hydro_brake_a = 0;
+                hydro_brake_b = 1;
             }
         }
     }
