@@ -4,6 +4,10 @@
 #include <stdint.h>
 
 /*
+  This iBUS parser was adapted from https://github.com:33d/ibus-library
+*/
+
+/*
   The data is serial data, 115200, 8N1.
   Messages arrive every 7 milliseconds, and are read constantly until a
   few tenths of a second after the transmitter is switched off.
