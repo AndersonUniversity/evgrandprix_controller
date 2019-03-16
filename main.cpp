@@ -70,7 +70,7 @@ int main()
                 regen_pwm = 0;
                 throttle_pwm = 0;
                 hydro_brake_a = 1;
-                hydro_break_b = 0;
+                hydro_brake_b = 0;
             } else {
                 foot_switch = 0;
                 throttle_pwm = 0;
@@ -104,4 +104,3 @@ int main()
         }
     }
 }
-
