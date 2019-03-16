@@ -41,9 +41,6 @@ void control(uint16_t* data){
     led1 = !led1;
     foot_switch = 0;
 
-    for (int i = 0; i < 6; i++) printf("%d ", data[i]);
-    printf("\n\r");
-
     // channel 1 is steering
     // left is from 1000 to 1500
     // right is from 1500 to 2000
@@ -114,6 +111,10 @@ int main()
 
         if (ibus.read(data, ch) == 0) {
           // A complete message has been read
+
+          for (int i = 0; i < 6; i++) printf("%d ", data[i]);
+          printf("\n\r");
+
           control(data);
         }
     }
