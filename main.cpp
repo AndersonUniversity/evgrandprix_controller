@@ -1,5 +1,6 @@
 #include <mbed.h>
 
+#include "Watchdog.hpp"
 #include "HydroBrake.hpp"
 #include "TractionMotor.hpp"
 #include "ibus.hpp"
@@ -29,10 +30,13 @@ HydroBrake hydro_brake(D3, D4);
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial ibus_receiver(NC, D4, 115200); // uart 1
 
+Watchdog dog;
+
 void setup() {
   traction_motor.idle();
   hydro_brake.disengage();
   steer.period(20e-3);
+  dog.Configure(0.1);
 }
 
 void remote_control(uint16_t *data) {
@@ -89,6 +93,7 @@ int main() {
 
     if (ibus.read(data, ch) == 0) {
       // A complete message has been read
+      dog.Service();
 
       for (int i = 0; i < 6; i++)
         printf("%d ", data[i]);

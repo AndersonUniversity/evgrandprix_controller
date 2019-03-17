@@ -1,2 +1,5 @@
-cmd: "mbed compile #&& cp BUILD/NUCLEO_L432KC/GCC_ARM/controller.bin /Volumes/NODE_L432KC/"
+cmd: "mbed compile"
 name: "compile"
+targets:
+  load_L432KC:
+    cmd: cp BUILD/NUCLEO_L432KC/GCC_ARM/controller.bin /Volumes/NODE_L432KC/
