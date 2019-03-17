@@ -1,4 +1,7 @@
 #include <mbed.h>
+
+#include "HydroBrake.hpp"
+#include "TractionMotor.hpp"
 #include "ibus.hpp"
 
 /*
@@ -14,108 +17,84 @@ UART2_RX is A2
 DigitalOut led1(LED1);
 
 // Traction motor interface
-PwmOut throttle_pwm(A6);
-PwmOut regen_pwm(A5);
-DigitalOut tractionForward(D11);
-DigitalOut tractionReverse(D12);
-DigitalOut foot_switch(D9);
+TractionMotor traction_motor(D11, D12, D9, A6, A5);
 
 // Kangaroo interface for the steering control
+// TODO wrap this up in a nice interface class
 PwmOut steer(D6);
 
 // H-Bridge interface for linear motor for hydrolic brake actuator
-DigitalOut hydro_brake_a(D3);
-DigitalOut hydro_brake_b(D4);
+HydroBrake hydro_brake(D3, D4);
 
+// Serial pc(USBTX, USBRX, 115200); // tx, rx
+Serial ibus_receiver(NC, D4, 115200); // uart 1
 
-//Serial pc(USBTX, USBRX, 115200); // tx, rx
-Serial ibus_receiver(NC, D4, 115200);  //uart 1
-
-void setup(){
-  throttle_pwm.period(1e-3);
+void setup() {
+  traction_motor.idle();
+  hydro_brake.disengage();
   steer.period(20e-3);
-  foot_switch = 0;
 }
 
-void control(uint16_t* data){
-    led1 = !led1;
-    foot_switch = 0;
+void remote_control(uint16_t *data) {
+  led1 = !led1;
 
-    // channel 1 is steering
-    // left is from 1000 to 1500
-    // right is from 1500 to 2000
-    steer.pulsewidth_us(data[0]);
+  // channel 1 is steering
+  // left is from 1000 to 1500
+  // right is from 1500 to 2000
+  steer.pulsewidth_us(data[0]);
 
-    // channel 4 is hydro brake
-    const int brakeMode = data[3] > 1750;
+  // channel 4 is brake mode select
+  const int brakeMode = data[3] > 1750;
 
-    // channel 2 is throttle and regen brake
-    if (data[1] >= 1550) {
-        // throttle on. Scaling with pull
-        foot_switch = 1;
-        regen_pwm = 0;
-        hydro_brake_a = 1;
-        hydro_brake_b = 0;
-        throttle_pwm.write(float(data[1] - 1500) / 500);
-        printf("throttle %f", float(data[1] - 1500) / 500);
-    } else if (data[1] >= 1450 and data[1] <= 1550){
-        foot_switch = 0;
-        regen_pwm = 0;
-        throttle_pwm = 0;
-        hydro_brake_a = 1;
-        hydro_brake_b = 0;
-    } else {
-        foot_switch = 0;
-        throttle_pwm = 0;
-        // brake according to brakeMode
-        if(brakeMode == 1) {
-            // using hydro
-            hydro_brake_a = 0;
-            hydro_brake_b = 0;
-        } else {
-            //brake using regen
-            regen_pwm = 1 - (float(data[1] - 1000) / 500);
-        }
+  // channel 3 is gear. Forward or Reverse
+  const bool forward = data[2] == 1000;
+
+  // channel 2 is throttle and regen brake
+  if (data[1] >= 1450 and data[1] <= 1550) {
+    // Dead zone
+    traction_motor.idle();
+    hydro_brake.disengage();
+  } else if (data[1] >= 1550) {
+    // throttle on. Scaling with pull
+    if (forward){
+      traction_motor.forward(float(data[1] - 1500) / 500);
+    }else{
+      traction_motor.reverse(float(data[1] - 1500) / 500);
     }
-
-    // channel 3 is gear. Forward or Reverse
-    if(data[2] == 1000) {
-        // In foward gear
-        foot_switch = 0;
-        tractionReverse = 0;
-        tractionForward = 1;
-        hydro_brake_a = 1;
-        hydro_brake_b = 0;
+    hydro_brake.disengage();
+  } else {
+    // brake according to brakeMode
+    if (brakeMode == 1) {
+      // using hydro
+      hydro_brake.engage(0.5); // number of seconds to full engagement
     } else {
-        // In reverse gear
-        foot_switch = 0;
-        tractionForward = 0;
-        tractionReverse = 1;
-        hydro_brake_a = 0;
-        hydro_brake_b = 1;
+      // brake using regen
+      hydro_brake.disengage();
+      traction_motor.forward(float(data[1] - 1500) / 500);
     }
+  }
 }
 
-int main()
-{
-    //Setup
-    uint16_t data[6];
-    iBUS ibus(6);
+int main() {
+  // Setup
+  uint16_t data[6];
+  iBUS ibus(6);
 
-    setup();
+  setup();
 
-    printf("Starting loop\n\r");
+  printf("Starting loop\n\r");
 
-    while(1) {
-        const uint8_t ch = ibus_receiver.getc();
+  while (1) {
+    const uint8_t ch = ibus_receiver.getc();
 
-        if (ibus.read(data, ch) == 0) {
-          // A complete message has been read
+    if (ibus.read(data, ch) == 0) {
+      // A complete message has been read
 
-          for (int i = 0; i < 6; i++) printf("%d ", data[i]);
-          printf("\n\r");
+      for (int i = 0; i < 6; i++)
+        printf("%d ", data[i]);
+      printf("\n\r");
 
-          control(data);
-        }
+      remote_control(data);
     }
+  }
 }
