@@ -1,12 +1,12 @@
-#include "HydroBrake.hpp"
+#include "HydraulicBrake.hpp"
 
-HydroBrake::HydroBrake(PinName a, PinName b) : m_A(a), m_B(b), m_timer() {
+HydraulicBrake::HydraulicBrake(PinName a, PinName b) : m_A(a), m_B(b), m_timer() {
   // disengage();
 }
 
 // this methods must be called often in order to trigger the power off for the
 // motor
-void HydroBrake::engage(float setpoint) {
+void HydraulicBrake::engage(float setpoint) {
   if (not m_A) {
     // newly engaged
     m_timer.reset();
@@ -25,7 +25,7 @@ void HydroBrake::engage(float setpoint) {
   }
 }
 
-void HydroBrake::disengage() {
+void HydraulicBrake::disengage() {
   m_A = 0;
   m_B = 1;
   m_timer.stop();

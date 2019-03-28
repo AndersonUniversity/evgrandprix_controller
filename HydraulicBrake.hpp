@@ -2,14 +2,14 @@
 
 #include <mbed.h>
 
-class HydroBrake {
+class HydraulicBrake {
 private:
   DigitalOut m_A;
   DigitalOut m_B;
   Timer m_timer;
 
 public:
-  HydroBrake(PinName a, PinName b);
+  HydraulicBrake(PinName a, PinName b);
 
   void engage(float setpoint);
 

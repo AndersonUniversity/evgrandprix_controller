@@ -1,7 +1,7 @@
 #include <mbed.h>
 
 #include "Watchdog.hpp"
-#include "HydroBrake.hpp"
+#include "HydraulicBrake.hpp"
 #include "TractionMotor.hpp"
 #include "ibus.hpp"
 
@@ -25,7 +25,7 @@ TractionMotor traction_motor(D11, D12, D9, A6, A5);
 PwmOut steer(D6);
 
 // H-Bridge interface for linear motor for hydrolic brake actuator
-HydroBrake hydro_brake(D3, D4);
+HydraulicBrake hydraulic_brake(D3, D4);
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial ibus_receiver(NC, D4, 115200); // uart 1
@@ -34,7 +34,7 @@ Watchdog dog;
 
 void setup() {
   traction_motor.idle();
-  hydro_brake.disengage();
+  hydraulic_brake.disengage();
   steer.period(20e-3);
   dog.Configure(0.1);
 }
@@ -57,7 +57,7 @@ void remote_control(uint16_t *data) {
   if (data[1] >= 1450 and data[1] <= 1550) {
     // Dead zone
     traction_motor.idle();
-    hydro_brake.disengage();
+    hydraulic_brake.disengage();
   } else if (data[1] >= 1550) {
     // throttle on. Scaling with pull
     if (forward){
@@ -65,15 +65,15 @@ void remote_control(uint16_t *data) {
     }else{
       traction_motor.reverse(float(data[1] - 1500) / 500);
     }
-    hydro_brake.disengage();
+    hydraulic_brake.disengage();
   } else {
     // brake according to brakeMode
     if (brakeMode == 1) {
       // using hydro
-      hydro_brake.engage(0.5); // number of seconds to full engagement
+      hydraulic_brake.engage(0.5); // number of seconds to full engagement
     } else {
       // brake using regen
-      hydro_brake.disengage();
+      hydraulic_brake.disengage();
       traction_motor.forward(float(data[1] - 1500) / 500);
     }
   }
