@@ -4,12 +4,11 @@
 
 class HydraulicBrake {
 private:
-  DigitalOut m_A;
-  DigitalOut m_B;
+  PwmOut m_control;
   Timer m_timer;
 
 public:
-  HydraulicBrake(PinName a, PinName b);
+  HydraulicBrake(PinName control);
 
   void engage(float setpoint);
 

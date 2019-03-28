@@ -25,8 +25,8 @@ TractionMotor traction_motor(D11, D12, D9, A6, A5);
 // TODO wrap this up in a nice interface class
 SteeringLoop steer(A4, D6);
 
-// H-Bridge interface for linear motor for hydrolic brake actuator
-HydraulicBrake hydraulic_brake(D3, D4); // TODO make this D5 (PwmOut)
+// interface for linear motor for hydrolic brake actuator (uses the S2 on the Sabortooth)
+HydraulicBrake hydraulic_brake(D5);
 
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
@@ -47,7 +47,7 @@ void remote_control(uint16_t *data) {
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
-  steer.set_desired((data[0] - 1000) / 1000.0f);
+  steer.set_desired(float(data[0] - 1000) / 1000);
 
   // channel 4 is brake mode select
   const int brakeMode = data[3] > 1750;
