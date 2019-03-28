@@ -4,6 +4,7 @@
 #include "HydraulicBrake.hpp"
 #include "TractionMotor.hpp"
 #include "ibus.hpp"
+#include "SteeringLoop.hpp"
 
 /*
 NUCLEO L432KC
@@ -22,10 +23,11 @@ TractionMotor traction_motor(D11, D12, D9, A6, A5);
 
 // Kangaroo interface for the steering control
 // TODO wrap this up in a nice interface class
-PwmOut steer(D6);
+SteeringLoop steer(A4, D6);
 
 // H-Bridge interface for linear motor for hydrolic brake actuator
-HydraulicBrake hydraulic_brake(D3, D4);
+HydraulicBrake hydraulic_brake(D3, D4); // TODO make this D5 (PwmOut)
+
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial ibus_receiver(NC, D4, 115200); // uart 1
@@ -35,8 +37,8 @@ Watchdog dog;
 void setup() {
   traction_motor.idle();
   hydraulic_brake.disengage();
-  steer.period(20e-3);
-  dog.Configure(0.1);
+  steer.start();
+  dog.configure(0.1);
 }
 
 void remote_control(uint16_t *data) {
@@ -45,7 +47,7 @@ void remote_control(uint16_t *data) {
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
-  steer.pulsewidth_us(data[0]);
+  steer.set_desired((data[0] - 1000) / 1000.0f);
 
   // channel 4 is brake mode select
   const int brakeMode = data[3] > 1750;
@@ -93,7 +95,7 @@ int main() {
 
     if (ibus.read(data, ch) == 0) {
       // A complete message has been read
-      dog.Service();
+      dog.service();
 
       for (int i = 0; i < 6; i++)
         printf("%d ", data[i]);

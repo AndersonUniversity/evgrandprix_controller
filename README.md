@@ -8,6 +8,8 @@ python3 -m venv myenv
 source myenv/bin/activate
 pip install wheel
 pip install mbed-cli
+mbed target -g NUCLEO_L432KC
+mbed toolchain -g GCC_ARM
 ```
 This will fail to install a non-essential package (cmsis-pack-manager).  The package requires cargo (from rust).
 ```
