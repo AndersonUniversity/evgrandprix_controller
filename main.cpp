@@ -33,72 +33,70 @@ HydraulicBrake hydraulic_brake(D5);
 Serial ibus_receiver(NC, D4, 115200); // uart 1
 
 Watchdog dog;
+iBUS ibus;
+
 
 void setup() {
   traction_motor.idle();
-  hydraulic_brake.disengage();
+  hydraulic_brake.start();
   steer.start();
-  dog.configure(0.1);
+  dog.configure(0.5);
 }
 
 void remote_control(uint16_t *data) {
   led1 = !led1;
-
 
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
   steer.set_desired(float(data[0] - 1000) / 1000);
 
-  // channel 4 is brake mode select
-  const int brakeMode = data[3] > 1750;
+  // channel 4 is gear select (center position is neutral)
+  const bool forward = data[3] > 1750;
+  const bool reverse = data[3] < 1250;
 
-  // channel 3 is gear. Forward or Reverse
-  const bool forward = data[2] == 1000;
+  // channel 6 is hydraulic brake position
+  if(data[5] > 1300){
+    // engage the brake
+    hydraulic_brake.set_desired(float(data[5] - 1000) / 1000);
+  }
+  else{
+    // deadzone (retract completely)
+    hydraulic_brake.disengage();
+  }
 
   // channel 2 is throttle and regen brake
   if (data[1] >= 1450 and data[1] <= 1550) {
     // Dead zone
     traction_motor.idle();
-    hydraulic_brake.disengage();
   } else if (data[1] >= 1550) {
     // throttle on. Scaling with pull
     hydraulic_brake.disengage(); //for safety
-    if (forward){
+    if(forward){
       traction_motor.forward(float(data[1] - 1500) / 500);
-    }else{
+    }
+    else if(reverse){
       traction_motor.reverse(float(data[1] - 1500) / 500);
     }
+    //else we are in neutral
   } else {
-    // brake according to brakeMode
-    if (brakeMode == 1) {
-      // using hydro
-      hydraulic_brake.engage(0.5); // number of seconds to full engagement
-    } else {
-      // brake using regen
-      hydraulic_brake.disengage();
-      traction_motor.forward(float(data[1] - 1500) / 500);
-    }
+    // brake using regen
+    traction_motor.forward(float(data[1] - 1500) / 500);
   }
 }
 
 int main() {
-  // Setup
-  iBUS ibus;
-
   setup();
 
   printf("Starting main loop\n\r");
 
-  while (1) {
+  while (true) {
     const uint8_t ch = ibus_receiver.getc();
-
     if (ibus.read(ch) == 0) {
       // A complete message has been read
       dog.service();
 
-      for (int i = 0; i < 6; i++)
-        printf("%d ", ibus.data[i]);
+      for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
       printf("\n\r");
 
       remote_control(ibus.data);

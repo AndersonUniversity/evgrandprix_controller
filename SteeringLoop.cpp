@@ -1,12 +1,11 @@
 #include "SteeringLoop.hpp"
 
-void SteeringLoop::set_desired(float desired)
-{
-  // This needs to grab a mutex to be thread safe.
-  m_mutex.lock();
-  m_desired = desired;
-  m_mutex.unlock();
-}
+SteeringLoop::SteeringLoop(PinName encoder, PinName control, float dt):
+ControlLoop(dt),
+m_encoder(encoder),
+m_control(control),
+m_pid()
+{}
 
 void SteeringLoop::start(){
   //init
@@ -18,15 +17,12 @@ void SteeringLoop::start(){
   m_pid.Kd = 0.0;
   arm_pid_init_f32(&m_pid, 1);
 
-  //can use the callback() to create a callback as well
-  m_thread.start(callback(this, &SteeringLoop::loop));
+  ControlLoop::start();
 }
 
 void SteeringLoop::update()
 {
-  m_mutex.lock();
-  const float desired = m_desired;
-  m_mutex.unlock();
+  const float desired = get_desired();
 
   const float actual = m_encoder;
 
@@ -36,7 +32,7 @@ void SteeringLoop::update()
   //Process the PID controller
   const float out = arm_pid_f32(&m_pid, error);
 
-  //printf("desired %.2f, actual %.2f, error %.2f\n\r", desired.read(), actual.read(), error);
+  //printf("desired %.2f, actual %.2f, error %.2f\n\r", desired, actual, error);
 
   // translate (0 is at 1500)
   int pw = -int(500.0f * out) + 1500;
@@ -47,12 +43,4 @@ void SteeringLoop::update()
 
   //printf("pw %.2f\n\r", pw);
   m_control.pulsewidth_us(pw);
-}
-
-void SteeringLoop::loop()
-{
-  while(true){
-    update();
-    wait(m_dt);
-  }
 }
