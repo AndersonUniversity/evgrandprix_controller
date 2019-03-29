@@ -83,25 +83,24 @@ void remote_control(uint16_t *data) {
 
 int main() {
   // Setup
-  uint16_t data[6];
   iBUS ibus(6);
 
   setup();
 
-  printf("Starting loop\n\r");
+  printf("Starting main loop\n\r");
 
   while (1) {
     const uint8_t ch = ibus_receiver.getc();
 
-    if (ibus.read(data, ch) == 0) {
+    if (ibus.read(ch) == 0) {
       // A complete message has been read
       dog.service();
 
       for (int i = 0; i < 6; i++)
-        printf("%d ", data[i]);
+        printf("%d ", ibus.data[i]);
       printf("\n\r");
 
-      remote_control(data);
+      remote_control(ibus.data);
     }
   }
 }

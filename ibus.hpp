@@ -1,5 +1,4 @@
-#if !defined(IBUS_HPP)
-#define IBUS_HPP
+#pragma once
 
 #include <stdint.h>
 
@@ -28,12 +27,16 @@
   checksum bytes.
 */
 
-class iBUS {
+class iBUS
+{
 private:
   uint_fast8_t state;
   uint_fast16_t checksum;
   uint_fast8_t datal;
   uint_fast8_t channel_count;
+
+public:
+  uint16_t data[6];
 
 public:
   /**
@@ -54,8 +57,6 @@ public:
    * @return 0 if the end of the packet has been received, and the checksum
    *   is OK.
    */
-  int read(uint16_t* data, uint8_t ch);
+  int read(uint8_t ch);
 
 };
-
-#endif
