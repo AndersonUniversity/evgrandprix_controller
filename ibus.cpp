@@ -22,9 +22,9 @@
 */
 
 
-iBUS::iBUS(uint_fast8_t channel_count):
+iBUS::iBUS():
 state(0),
-channel_count(channel_count)
+channel_count(6)
 {}
 
 int iBUS::read(uint8_t ch) {

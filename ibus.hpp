@@ -27,6 +27,8 @@
   checksum bytes.
 */
 
+//TODO channel_count should be a template parameter (or truely dynamic)
+
 class iBUS
 {
 private:
@@ -45,14 +47,10 @@ public:
    *   successive calls to ibus_read
    * @param channel_count How many channels to read (maximum 14)
    */
-  iBUS(uint_fast8_t channel_count);
+  iBUS();
 
   /**
    * Process the next byte from the receiver.
-   * @param state The library state, initialized by ibus_init and passed to
-   *   all calls to this function
-   * @param data Where to write the channel data.  Must contain as many elements
-   *   as passed to ibus_init.
    * @param ch The next character from the receiver
    * @return 0 if the end of the packet has been received, and the checksum
    *   is OK.

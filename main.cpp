@@ -44,6 +44,7 @@ void setup() {
 void remote_control(uint16_t *data) {
   led1 = !led1;
 
+
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
@@ -62,12 +63,12 @@ void remote_control(uint16_t *data) {
     hydraulic_brake.disengage();
   } else if (data[1] >= 1550) {
     // throttle on. Scaling with pull
+    hydraulic_brake.disengage(); //for safety
     if (forward){
       traction_motor.forward(float(data[1] - 1500) / 500);
     }else{
       traction_motor.reverse(float(data[1] - 1500) / 500);
     }
-    hydraulic_brake.disengage();
   } else {
     // brake according to brakeMode
     if (brakeMode == 1) {
@@ -83,7 +84,7 @@ void remote_control(uint16_t *data) {
 
 int main() {
   // Setup
-  iBUS ibus(6);
+  iBUS ibus;
 
   setup();
 
