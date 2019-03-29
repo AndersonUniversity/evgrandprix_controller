@@ -11,7 +11,15 @@ pip install mbed-cli
 mbed target -g NUCLEO_L432KC
 mbed toolchain -g GCC_ARM
 ```
-This will fail to install a non-essential package (cmsis-pack-manager).  The package requires cargo (from rust).
+
+## cmsis-pack-manager Issue
+This will fail to install a non-essential package (cmsis-pack-manager) because there is no wheel.
+
+Simply remove the cmsis-pack-manager line from mbed-os/requirements.txt and install with
+`pip install -r requirements.txt`
+
+### This approach did not work
+The package requires cargo (from rust).
 ```
 git clone https://github.com/ARMmbed/cmsis-pack-manager.git
 cd cmsis-pack-manager
@@ -19,8 +27,18 @@ python setup.py install
 ```
 But this fails to install due to needing cargo (rust).
 
-Simply remove the package from mbed-os/requirements.txt and install with
-`pip install -r requirements.txt`
+
+## Toolchain Issue
+We are being hit by [this](https://bugs.launchpad.net/ubuntu/+source/newlib/+bug/1767223) bug in Ubuntu 18.04 when we try to `mbed compile`.
+
+Using a new deb packages works fine.
+```
+wget http://mirrors.kernel.org/ubuntu/pool/universe/n/newlib/libnewlib-dev_3.0.0.20180802-2_all.deb
+wget http://mirrors.kernel.org/ubuntu/pool/universe/n/newlib/libnewlib-arm-none-eabi_3.0.0.20180802-2_all.deb
+sudo dpkg -i *.deb
+```
+
+
 
 
 ### MBED Information
