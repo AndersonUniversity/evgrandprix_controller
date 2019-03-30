@@ -32,8 +32,6 @@ void SteeringLoop::update()
   //Process the PID controller
   const float out = arm_pid_f32(&m_pid, error);
 
-  //printf("desired %.2f, actual %.2f, error %.2f\n\r", desired, actual, error);
-
   // translate (0 is at 1500)
   int pw = -int(500.0f * out) + 1500;
 
@@ -41,6 +39,8 @@ void SteeringLoop::update()
   pw = max(pw, 1000);
   pw = min(pw, 2000);
 
-  //printf("pw %.2f\n\r", pw);
+  printf("STEERING: desired %.2f, actual %.2f, error %.2f, pw %d\n\r", 
+    desired, actual, error, pw);
+
   m_control.pulsewidth_us(pw);
 }

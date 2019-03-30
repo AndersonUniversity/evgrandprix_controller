@@ -8,11 +8,11 @@
 class HydraulicBrake : public ControlLoop<float>
 {
 private:
-  enum status {engaging, disengaging, idle, disengaged};
+  enum state {engaging=1, disengaging=-1, idle=0};
 
   PwmOut m_control;
-  float m_current;
-  status m_status;
+  float m_elapsed;
+  state m_state;
   Timer m_timer;
 
 public:
@@ -27,4 +27,5 @@ public:
 
 private:
   void update() override;
+  void bank();
 };

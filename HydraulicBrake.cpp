@@ -3,8 +3,8 @@
 HydraulicBrake::HydraulicBrake(PinName control, float dt) :
 ControlLoop(dt),
 m_control(control),
-m_current(0.0f),
-m_status(idle)
+m_elapsed(0.0f),
+m_state(idle)
 {
   // disengage();
 }
@@ -16,36 +16,52 @@ void HydraulicBrake::start()
   ControlLoop::start();
 }
 
+void HydraulicBrake::bank()
+{
+  m_elapsed = m_elapsed + m_state*m_timer;
+  m_timer.reset();
+}
+
 void HydraulicBrake::update()
 {
   const float dead_dt = 0.05f;
-  const float current = m_current + m_timer;
-  const float error = get_desired() - current;
+  const float actual = m_elapsed + m_state*m_timer;
+  const float desired = get_desired();
+  const float error = desired - actual;
 
-  if (error > dead_dt) {
-    // we need to be engaging (at full speed)
-    m_control.pulsewidth_us(2000);
+  // determine new state
+  state new_state = idle;
+  if (error > dead_dt) new_state = engaging;
+  else if (error < dead_dt) new_state = disengaging;
 
-    if (m_status != engaging) {
-      // newly engaged
-      m_timer.reset();
-      m_timer.start();
-      m_status = engaging;
+  // always disengage for zero brake (this resets our open loop control)
+  // We don't want to be idle in this zone
+  if (m_elapsed < 0.01f) new_state = disengaging;
+
+  if (m_state != new_state) {
+    // We have a state transition
+    bank();
+
+    if (new_state == idle) {
+      // going into idle (from engaging or disengaging)
+      m_timer.stop();
     }
-  } if(error < dead_dt){
-    // we need to be disengaging (at full speed)
-    m_control.pulsewidth_us(1000);
 
-    if (m_status != disengaging) {
-      // newly engaged
-      m_timer.reset();
+    if (m_state == idle) {
+      // newly engaging or disengaging
       m_timer.start();
-      m_status = disengaging;
     }
-  } else {
-    // deadzone => hold
-    m_control.pulsewidth_us(1500);
-    m_timer.stop();
-    m_status = idle;
   }
+
+  m_state = new_state;
+
+  // convert state to a motor control signal
+  int pw = 1500; //idle
+  if (m_state == engaging) pw = 2000;
+  else if (m_state == disengaging) pw = 1000;
+
+  printf("HYDRAULIC BRAKE: desired %.2f, actual %.2f, error %.2f, pw %d\n\r", desired, actual, error, pw);
+
+  m_control.pulsewidth_us(pw);
+
 }
