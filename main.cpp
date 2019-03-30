@@ -44,44 +44,64 @@ void setup() {
 }
 
 void remote_control(uint16_t *data) {
-  led1 = !led1;
 
+  // PARSE RC PULSE WIDTH DATA (this part is replaced when we go with autonomous control)
+
+  // logging
+  for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
+  printf("\n\r");
+  
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
-  steer.set_desired(float(data[0] - 1000) / 1000);
+  const float steering_angle = float(data[0] - 1000) / 1000.0f;
+
+  // channel 2 is throttle and regen brake (trigger control)
+  const float throttle = float(data[1] - 1500) / 500.0f;
 
   // channel 4 is gear select (center position is neutral)
   const bool forward = data[3] > 1750;
   const bool reverse = data[3] < 1250;
 
   // channel 6 is hydraulic brake position
-  if(data[5] > 1300){
+  const float brake_position = float(data[5] - 1000) / 1000.0f;
+
+  // logging
+  char gear = 'N';
+  if(forward) gear = 'F';
+  if(reverse) gear = 'R';
+  printf("%c %.2f %.2f %.2f \n\r", gear, steering_angle, throttle, brake_position);
+
+  // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
+
+  steer.set_desired(steering_angle);
+
+  if(brake_position > 0.1){
     // engage the brake
-    hydraulic_brake.set_desired(float(data[5] - 1000) / 1000);
+    hydraulic_brake.set_desired(brake_position);
   }
   else{
     // deadzone (retract completely)
     hydraulic_brake.disengage();
   }
 
-  // channel 2 is throttle and regen brake
-  if (data[1] >= 1450 and data[1] <= 1550) {
-    // Dead zone
-    traction_motor.idle();
-  } else if (data[1] >= 1550) {
-    // throttle on. Scaling with pull
+  if (throttle > 0.1f) {
+    // throttle on
     hydraulic_brake.disengage(); //for safety
     if(forward){
-      traction_motor.forward(float(data[1] - 1500) / 500);
+      traction_motor.forward(throttle);
     }
     else if(reverse){
-      traction_motor.reverse(float(data[1] - 1500) / 500);
+      traction_motor.reverse(throttle);
     }
     //else we are in neutral
-  } else {
+  } else if(throttle < -0.1f) {
     // brake using regen
-    traction_motor.forward(float(data[1] - 1500) / 500);
+    //TODO this should be symmetric with throttle
+    traction_motor.forward(throttle);
+  } else {
+    // Dead zone
+    traction_motor.idle();
   }
 }
 
@@ -91,13 +111,14 @@ int main() {
   printf("Starting main loop\n\r");
 
   while (true) {
+
     const uint8_t ch = ibus_receiver.getc();
     if (ibus.read(ch) == 0) {
       // A complete message has been read
       dog.service();
 
-      for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
-      printf("\n\r");
+      // status update
+      led1 = !led1;
 
       remote_control(ibus.data);
     }
