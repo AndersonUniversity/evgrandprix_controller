@@ -60,7 +60,7 @@ void HydraulicBrake::update()
   if (m_state == engaging) pw = 2000;
   else if (m_state == disengaging) pw = 1000;
 
-  printf("HYDRAULIC BRAKE: desired %.2f, actual %.2f, error %.2f, pw %d\n\r", desired, actual, error, pw);
+  printf("HYDRAULIC BRAKE: desired %.2f, actual %.2f, error %.2f, pw %d\r\n", desired, actual, error, pw);
 
   m_control.pulsewidth_us(pw);
 

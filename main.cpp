@@ -49,8 +49,8 @@ void remote_control(uint16_t *data) {
 
   // logging
   for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
-  printf("\n\r");
-  
+  printf("\r\n");
+
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
@@ -70,7 +70,7 @@ void remote_control(uint16_t *data) {
   char gear = 'N';
   if(forward) gear = 'F';
   if(reverse) gear = 'R';
-  printf("%c %.2f %.2f %.2f \n\r", gear, steering_angle, throttle, brake_position);
+  printf("%c %.2f %.2f %.2f \r\n", gear, steering_angle, throttle, brake_position);
 
   // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
 
@@ -108,7 +108,7 @@ void remote_control(uint16_t *data) {
 int main() {
   setup();
 
-  printf("Starting main loop\n\r");
+  printf("Starting main loop\r\n");
 
   while (true) {
 
