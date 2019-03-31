@@ -7,23 +7,9 @@ TractionMotor::TractionMotor(PinName fwd, PinName rev, PinName foot,
   // idle();
 }
 
-void TractionMotor::forward(float accel) {
-  m_forward = 1;
-  m_reverse = 0;
-  m_foot = 1;
-
-  if (accel > 0) {
-    m_throttle = accel;
-    m_regen = 0;
-  } else {
-    m_throttle = 0;
-    m_regen = -accel;
-  }
-}
-
-void TractionMotor::reverse(float accel) {
-  m_forward = 0;
-  m_reverse = 1;
+void TractionMotor::control(float accel, Gear gear) {
+  m_forward = gear == Gear::forward;
+  m_reverse = gear == Gear::reverse;
   m_foot = 1;
 
   if (accel > 0) {

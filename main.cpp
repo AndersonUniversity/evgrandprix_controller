@@ -88,22 +88,15 @@ void apply_command(const CommandMsg& cmd)
 
   if (cmd.throttle_regen > 0.1f) {
     // throttle on
+
+    // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
     hydraulic_brake.disengage(); //for safety
-    if(cmd.gear == Gear::forward){
-      traction_motor.forward(cmd.throttle_regen);
-    }
-    else if(cmd.gear == Gear::reverse){
-      traction_motor.reverse(cmd.throttle_regen);
-    }
+    
+    traction_motor.control(cmd.throttle_regen, cmd.gear);
     //else we are in neutral
   } else if(cmd.throttle_regen < -0.1f) {
     // brake using regen
-    if(cmd.gear == Gear::forward){
-      traction_motor.forward(cmd.throttle_regen);
-    }
-    else if(cmd.gear == Gear::reverse){
-      traction_motor.reverse(cmd.throttle_regen);
-    }
+    traction_motor.control(cmd.throttle_regen, cmd.gear);
   } else {
     // Dead zone
     traction_motor.idle();
