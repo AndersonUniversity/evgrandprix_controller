@@ -5,11 +5,12 @@
 #include "TractionMotor.hpp"
 #include "ibus.hpp"
 #include "SteeringLoop.hpp"
+#include "SystemReport.hpp"
 
 /*
 NUCLEO L432KC
 Two UARTs available
-UART1_RX is D4
+UART1_RX is D4 (for the iBUS)
 
 UART2 is the USB port (STDOUT/STDIN)
 UART2_TX is A7
@@ -21,20 +22,17 @@ DigitalOut led1(LED1);
 // Traction motor interface
 TractionMotor traction_motor(D11, D12, D9, A6, A5);
 
-// Kangaroo interface for the steering control
-// TODO wrap this up in a nice interface class
+// steering control connected to the sabortooth H-bridge (S1)
 SteeringLoop steer(A4, D6);
 
 // interface for linear motor for hydrolic brake actuator (uses the S2 on the Sabortooth)
 HydraulicBrake hydraulic_brake(D5);
-
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial ibus_receiver(NC, D4, 115200); // uart 1
 
 Watchdog dog;
 iBUS ibus;
-
 
 void setup() {
   traction_motor.idle();
@@ -43,73 +41,78 @@ void setup() {
   dog.configure(0.5);
 }
 
-void remote_control(uint16_t *data) {
-
+CommandMsg parse_RC(uint16_t data[])
+{
   // PARSE RC PULSE WIDTH DATA (this part is replaced when we go with autonomous control)
 
   // logging
+  printf("RC: ");
   for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
   printf("\r\n");
+
+  CommandMsg cmd;
 
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
-  const float steering_angle = float(data[0] - 1000) / 1000.0f;
+  cmd.steering = float(data[0] - 1000) / 1000.0f;
 
   // channel 2 is throttle and regen brake (trigger control)
-  const float throttle = float(data[1] - 1500) / 500.0f;
+  cmd.throttle_regen = float(data[1] - 1500) / 500.0f;
 
   // channel 4 is gear select (center position is neutral)
-  const bool forward = data[3] > 1750;
-  const bool reverse = data[3] < 1250;
+  cmd.gear = neutral;
+  if (data[3] > 1750) cmd.gear = Gear::forward;
+  else if (data[3] < 1250) cmd.gear = Gear::reverse;
 
   // channel 6 is hydraulic brake position
-  const float brake_position = float(data[5] - 1000) / 1000.0f;
+  cmd.ebrake = float(data[5] - 1000) / 1000.0f;
 
-  // logging
-  char gear = 'N';
-  if(forward) gear = 'F';
-  if(reverse) gear = 'R';
-  printf("%c %.2f %.2f %.2f \r\n", gear, steering_angle, throttle, brake_position);
+  return cmd;
+}
 
+void apply_command(const CommandMsg& cmd)
+{
   // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
 
-  steer.set_desired(steering_angle);
+  steer.set_desired(cmd.steering);
 
-  if(brake_position > 0.1){
+  if(cmd.ebrake > 0.1f){
     // engage the brake
-    hydraulic_brake.set_desired(brake_position);
+    hydraulic_brake.set_desired(cmd.ebrake);
   }
   else{
     // deadzone (retract completely)
     hydraulic_brake.disengage();
   }
 
-  if (throttle > 0.1f) {
+  if (cmd.throttle_regen > 0.1f) {
     // throttle on
     hydraulic_brake.disengage(); //for safety
-    if(forward){
-      traction_motor.forward(throttle);
+    if(cmd.gear == Gear::forward){
+      traction_motor.forward(cmd.throttle_regen);
     }
-    else if(reverse){
-      traction_motor.reverse(throttle);
+    else if(cmd.gear == Gear::reverse){
+      traction_motor.reverse(cmd.throttle_regen);
     }
     //else we are in neutral
-  } else if(throttle < -0.1f) {
+  } else if(cmd.throttle_regen < -0.1f) {
     // brake using regen
-    //TODO this should be symmetric with throttle
-    traction_motor.forward(throttle);
+    if(cmd.gear == Gear::forward){
+      traction_motor.forward(cmd.throttle_regen);
+    }
+    else if(cmd.gear == Gear::reverse){
+      traction_motor.reverse(cmd.throttle_regen);
+    }
   } else {
     // Dead zone
     traction_motor.idle();
   }
 }
 
-int main() {
-  setup();
-
-  printf("Starting main loop\r\n");
-
+void main_control_loop()
+{
+  printf("Starting main control loop\r\n");
   while (true) {
 
     const uint8_t ch = ibus_receiver.getc();
@@ -120,7 +123,29 @@ int main() {
       // status update
       led1 = !led1;
 
-      remote_control(ibus.data);
+      const CommandMsg cmd = parse_RC(ibus.data);
+      // TODO this is where we add an IF statement for autonomous or RC.
+      // in either case we call the apply_command()
+      apply_command(cmd);
     }
+  }
+}
+
+// Loop delay time in ms
+SystemReport stats(10000);
+
+int main() {
+
+  setup();
+
+  printf("Starting main status loop\r\n");
+
+  Thread thread;
+  thread.start(main_control_loop);
+
+  while(true){
+    stats.report_state();
+
+    wait_ms(stats.sample_time());
   }
 }

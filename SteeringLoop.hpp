@@ -1,7 +1,10 @@
+#pragma once
+
 #include <mbed.h>
 #include <arm_math.h>
 
 #include "ControlLoop.hpp"
+#include "CommandMsg.hpp"
 
 // Sabortooth config
 // 1-OFF 2-ON 3-ON 4-OFF 5-ON 6-OFF
