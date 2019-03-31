@@ -2,6 +2,9 @@
 
 #include <mbed.h>
 
+#include "CommandMsg.hpp"
+
+
 class TractionMotor {
 private:
   DigitalOut m_forward;
@@ -14,9 +17,7 @@ public:
   TractionMotor(PinName fwd, PinName rev, PinName foot, PinName throttle,
                 PinName regen);
 
-  void forward(float accel);
-
-  void reverse(float accell);
+  void control(float accel, Gear gear);
 
   void idle();
 };

@@ -51,7 +51,7 @@ Watchdog::Watchdog() {
 }
 
 /// Load timeout value in watchdog timer and enable
-void Watchdog::Configure(float timeout) {
+void Watchdog::configure(float timeout) {
 #ifdef LPC
   LPC_WDT->WDCLKSEL = 0x1; // Set CLK src to PCLK
   uint32_t clk =
@@ -107,12 +107,12 @@ void Watchdog::Configure(float timeout) {
                      // http://embedded-lab.com/blog/?p=9662#sthash.6VNxVSn0.dpuf
 #endif
 
-  Service();
+  service();
 }
 
-/// "Service", "kick" or "feed" the dog - reset the watchdog timer
+/// "service", "kick" or "feed" the dog - reset the watchdog timer
 /// by writing this required bit pattern
-void Watchdog::Service() {
+void Watchdog::service() {
 #ifdef LPC
   LPC_WDT->WDFEED = 0xAA;
   LPC_WDT->WDFEED = 0x55;
@@ -124,4 +124,4 @@ void Watchdog::Service() {
 }
 
 /// get the flag to indicate if the watchdog causes the reset
-bool Watchdog::WatchdogCausedReset() { return wdreset; }
+bool Watchdog::watchdogCausedReset() { return wdreset; }

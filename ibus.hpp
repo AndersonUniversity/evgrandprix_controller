@@ -1,5 +1,4 @@
-#if !defined(IBUS_HPP)
-#define IBUS_HPP
+#pragma once
 
 #include <stdint.h>
 
@@ -28,12 +27,18 @@
   checksum bytes.
 */
 
-class iBUS {
+//TODO channel_count should be a template parameter (or truely dynamic)
+
+class iBUS
+{
 private:
   uint_fast8_t state;
   uint_fast16_t checksum;
   uint_fast8_t datal;
   uint_fast8_t channel_count;
+
+public:
+  uint16_t data[6];
 
 public:
   /**
@@ -42,20 +47,14 @@ public:
    *   successive calls to ibus_read
    * @param channel_count How many channels to read (maximum 14)
    */
-  iBUS(uint_fast8_t channel_count);
+  iBUS();
 
   /**
    * Process the next byte from the receiver.
-   * @param state The library state, initialized by ibus_init and passed to
-   *   all calls to this function
-   * @param data Where to write the channel data.  Must contain as many elements
-   *   as passed to ibus_init.
    * @param ch The next character from the receiver
    * @return 0 if the end of the packet has been received, and the checksum
    *   is OK.
    */
-  int read(uint16_t* data, uint8_t ch);
+  int read(uint8_t ch);
 
 };
-
-#endif

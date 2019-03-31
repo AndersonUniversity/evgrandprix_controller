@@ -17,9 +17,8 @@
 /// History
 /// \li v1.00 - 20110616: initial release with some documentation improvements
 ///
-#ifndef WATCHDOG_H
-#define WATCHDOG_H
-#include "mbed.h"
+#pragma once
+#include <mbed.h>
 
 /// The Watchdog class provides the interface to the Watchdog feature
 ///
@@ -38,12 +37,12 @@
 ///
 /// ...
 /// main() {
-///    if (wd.WatchdogCausedReset())
+///    if (wd.watchdogCausedReset())
 ///        pc.printf("Watchdog caused reset.\r\n");
 ///
-///    wd.Configure(3.0);       // sets the timeout interval
+///    wd.configure(3.0);       // sets the timeout interval
 ///    for (;;) {
-///         wd.Service();       // kick the dog before the timeout
+///         wd.service();       // kick the dog before the timeout
 ///         // do other work
 ///    }
 /// }
@@ -59,7 +58,7 @@ public:
   /// @endcode
   Watchdog();
 
-  /// Configure the timeout for the Watchdog
+  /// configure the timeout for the Watchdog
   ///
   /// This configures the Watchdog service and starts it. It must
   /// be serviced before the timeout, or the system will be restarted.
@@ -67,37 +66,35 @@ public:
   /// example:
   /// @code
   ///     ...
-  ///     wd.Configure(1.4);  // configure for a 1.4 second timeout
+  ///     wd.configure(1.4);  // configure for a 1.4 second timeout
   ///     ...
   /// @endcode
   ///
   /// @param[in] timeout in seconds, as a floating point number
   /// @returns none
   ///
-  void Configure(float timeout);
+  void configure(float timeout);
 
-  /// Service the Watchdog so it does not cause a system reset
+  /// service the Watchdog so it does not cause a system reset
   ///
   /// example:
   /// @code
-  ///    wd.Service();
+  ///    wd.service();
   /// @endcode
   /// @returns none
-  void Service();
+  void service();
 
-  /// WatchdogCausedReset identifies if the cause of the system
+  /// watchdogCausedReset identifies if the cause of the system
   /// reset was the Watchdog
   ///
   /// example:
   /// @code
-  ///    if (wd.WatchdogCausedReset())) {
+  ///    if (wd.watchdogCausedReset())) {
   /// @endcode
   ///
   /// @returns true if the Watchdog was the cause of the reset
-  bool WatchdogCausedReset();
+  bool watchdogCausedReset();
 
 private:
   bool wdreset;
 };
-
-#endif // WATCHDOG_H
