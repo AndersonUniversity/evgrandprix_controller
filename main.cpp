@@ -20,10 +20,10 @@ UART2_RX is A2
 DigitalOut led1(LED1);
 
 // Traction motor interface
-TractionMotor traction_motor(D11, D12, D9, A6, A5);
+TractionMotor traction_motor(D11, D12, D9, A6, A1);
 
 // steering control connected to the sabortooth H-bridge (S1)
-SteeringLoop steer(A4, D6);
+SteeringLoop steer(A3, D6);
 
 // interface for linear motor for hydrolic brake actuator (uses the S2 on the Sabortooth)
 HydraulicBrake hydraulic_brake(D5);
@@ -91,7 +91,7 @@ void apply_command(const CommandMsg& cmd)
 
     // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
     hydraulic_brake.disengage(); //for safety
-    
+
     traction_motor.control(cmd.throttle_regen, cmd.gear);
     //else we are in neutral
   } else if(cmd.throttle_regen < -0.1f) {

@@ -14,8 +14,10 @@ private:
   PwmOut m_regen;
 
 public:
-  TractionMotor(PinName fwd, PinName rev, PinName foot, PinName throttle,
-                PinName regen);
+  // throttle and regen must be PWM pins
+  TractionMotor(PinName fwd, PinName rev, PinName foot,
+    PinName throttle,
+    PinName regen);
 
   void control(float accel, Gear gear);
 
