@@ -35,6 +35,9 @@ Serial ibus_receiver(NC, D4, 115200); // uart 1
 Watchdog dog;
 iBUS ibus;
 
+
+const float hydraulic_brake_scale = 2.0f;
+
 void setup() {
   traction_motor.setup();
   traction_motor.idle();
@@ -71,7 +74,7 @@ CommandMsg parse_RC(uint16_t data[])
   else if (data[3] < 1250) cmd.gear = Gear::reverse;
 
   // channel 6 is hydraulic brake position
-  cmd.ebrake = float(data[5] - 1000) / 1000.0f;
+  cmd.ebrake = hydraulic_brake_scale * float(data[5] - 1000) / 1000.0f;
 
   return cmd;
 }

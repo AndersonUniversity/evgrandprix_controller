@@ -20,24 +20,27 @@ void HydraulicBrake::start()
 void HydraulicBrake::bank()
 {
   m_elapsed = m_elapsed + m_state*m_timer;
+  m_elapsed = max(m_elapsed, 0.0f);
   m_timer.reset();
 }
 
 void HydraulicBrake::update()
 {
   const float dead_dt = 0.05f;
-  const float actual = m_elapsed + m_state*m_timer;
+  float actual = m_elapsed + m_state*m_timer;
+  //LOG("HYDRAULIC BRAKE: elapsed, %.f, state, %d, desired %.2f\r\n", m_elapsed, m_state, actual);
+  actual = max(actual, 0.0f);
   const float desired = get_desired();
   const float error = desired - actual;
 
   // determine new state
   state new_state = idle;
   if (error > dead_dt) new_state = engaging;
-  else if (error < dead_dt) new_state = disengaging;
+  else if (error < -dead_dt) new_state = disengaging;
 
   // always disengage for zero brake (this resets our open loop control)
   // We don't want to be idle in this zone
-  if (m_elapsed < 0.01f) new_state = disengaging;
+  if (actual < dead_dt and std::abs(error) < dead_dt) new_state = disengaging;
 
   if (m_state != new_state) {
     // We have a state transition
@@ -61,7 +64,8 @@ void HydraulicBrake::update()
   if (m_state == engaging) pw = 2000;
   else if (m_state == disengaging) pw = 1000;
 
-  LOG("HYDRAULIC BRAKE: desired %.2f, actual %.2f, error %.2f, pw %d\r\n", desired, actual, error, pw);
+  LOG("HYDRAULIC BRAKE: desired %.2f, actual %.2f, error %.2f, state %d, pw %d\r\n",
+      desired, actual, error, m_state, pw);
 
   m_control.pulsewidth_us(pw);
 
