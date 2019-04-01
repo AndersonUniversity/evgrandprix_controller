@@ -19,6 +19,8 @@ public:
     PinName throttle,
     PinName regen);
 
+  void setup();
+
   void control(float accel, Gear gear);
 
   void idle();

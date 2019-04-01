@@ -1,10 +1,19 @@
 #include "TractionMotor.hpp"
 
 TractionMotor::TractionMotor(PinName fwd, PinName rev, PinName foot,
-                             PinName throttle, PinName regen)
-    : m_forward(fwd), m_reverse(rev), m_foot(foot), m_throttle(throttle),
-      m_regen(regen) {
+                             PinName throttle, PinName regen):
+    m_forward(fwd), m_reverse(rev), m_foot(foot),
+    m_throttle(throttle),
+    m_regen(regen)
+{
+  // setup();
   // idle();
+}
+
+void TractionMotor::setup()
+{
+  m_throttle.period_us(100);
+  m_regen.period_us(100);
 }
 
 void TractionMotor::control(float accel, Gear gear) {

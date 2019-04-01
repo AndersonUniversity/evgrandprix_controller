@@ -35,6 +35,7 @@ Watchdog dog;
 iBUS ibus;
 
 void setup() {
+  traction_motor.setup();
   traction_motor.idle();
   hydraulic_brake.start();
   steer.start();
