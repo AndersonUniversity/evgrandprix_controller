@@ -6,6 +6,7 @@
 #include "ibus.hpp"
 #include "SteeringLoop.hpp"
 #include "SystemReport.hpp"
+#include "Log.hpp"
 
 /*
 NUCLEO L432KC
@@ -39,7 +40,7 @@ void setup() {
   traction_motor.idle();
   hydraulic_brake.start();
   steer.start();
-  dog.configure(0.5);
+  dog.configure(0.5f);
 }
 
 CommandMsg parse_RC(uint16_t data[])
@@ -47,9 +48,12 @@ CommandMsg parse_RC(uint16_t data[])
   // PARSE RC PULSE WIDTH DATA (this part is replaced when we go with autonomous control)
 
   // logging
-  printf("RC: ");
-  for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
-  printf("\r\n");
+  {
+    mbed::ScopedLock<Mutex> lock(s_stdio_mutex);
+    printf("RC: ");
+    for (int i = 0; i < 6; i++) printf("%d ", ibus.data[i]);
+    printf("\r\n");
+  }
 
   CommandMsg cmd;
 
@@ -106,7 +110,7 @@ void apply_command(const CommandMsg& cmd)
 
 void main_control_loop()
 {
-  printf("Starting main control loop\r\n");
+  LOG("Starting main control loop\r\n");
   while (true) {
 
     const uint8_t ch = ibus_receiver.getc();
@@ -120,6 +124,8 @@ void main_control_loop()
       const CommandMsg cmd = parse_RC(ibus.data);
       // TODO this is where we add an IF statement for autonomous or RC.
       // in either case we call the apply_command()
+
+      cmd.dump();
       apply_command(cmd);
     }
   }
@@ -130,15 +136,21 @@ SystemReport stats(10000);
 
 int main() {
 
+  if (dog.watchdogCausedReset())
+    LOG("WATCHDOG: The watchdog caused a reset *************\r\n");
+
   setup();
 
-  printf("Starting main status loop\r\n");
+  LOG("Starting main status loop\r\n");
 
   Thread thread;
   thread.start(main_control_loop);
 
   while(true){
-    stats.report_state();
+    {
+      mbed::ScopedLock<Mutex> lock(s_stdio_mutex);
+      stats.report_state();
+    }
 
     wait_ms(stats.sample_time());
   }

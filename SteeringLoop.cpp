@@ -1,4 +1,5 @@
 #include "SteeringLoop.hpp"
+#include "Log.hpp"
 
 SteeringLoop::SteeringLoop(PinName encoder, PinName control, float dt):
 ControlLoop(dt),
@@ -39,7 +40,7 @@ void SteeringLoop::update()
   pw = max(pw, 1000);
   pw = min(pw, 2000);
 
-  printf("STEERING: desired %.2f, actual %.2f, error %.2f, pw %d\r\n", 
+  LOG("STEERING: desired %.2f, actual %.2f, error %.2f, pw %d\r\n",
     desired, actual, error, pw);
 
   m_control.pulsewidth_us(pw);

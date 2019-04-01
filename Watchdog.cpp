@@ -28,6 +28,8 @@
 #include <mbed.h>
 
 #include "Watchdog.hpp"
+#include "Log.hpp"
+
 
 /// Watchdog gets instantiated at the module level
 Watchdog::Watchdog() {
@@ -96,7 +98,7 @@ void Watchdog::configure(float timeout) {
   ReloadValue = (uint32_t)(timeout * (LsiFreq / Prescaler));
 
   Calculated_timeout = ((float)(Prescaler * ReloadValue)) / LsiFreq;
-  printf("WATCHDOG set with prescaler:%d reload value: 0x%X - timeout:%f\n",
+  LOG("WATCHDOG set with prescaler:%d reload value: 0x%X - timeout:%f\n",
          Prescaler, ReloadValue, Calculated_timeout);
 
   IWDG->KR = 0x5555;        // Disable write protection of IWDG registers

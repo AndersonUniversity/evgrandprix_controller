@@ -2,6 +2,7 @@
 
 #include <mbed.h>
 
+
 template<typename T>
 class ControlLoop
 {
@@ -27,17 +28,14 @@ public:
   void set_desired(T desired)
   {
     // This needs to grab a mutex to be thread safe.
-    m_mutex.lock();
+    mbed::ScopedLock<Mutex> lock(m_mutex);
     m_desired = desired;
-    m_mutex.unlock();
   }
 
   T get_desired()
   {
-    m_mutex.lock();
-    T desired(m_desired); // make a copy
-    m_mutex.unlock();
-    return desired;
+    mbed::ScopedLock<Mutex> lock(m_mutex);
+    return m_desired;
   }
 
 protected:

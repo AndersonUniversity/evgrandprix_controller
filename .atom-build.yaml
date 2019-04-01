@@ -1,8 +1,5 @@
 cmd: "mbed compile --profile develop.json"
 name: "compile"
 targets:
-  load_L432KC:
-    cmd: cp BUILD/NUCLEO_L432KC/GCC_ARM/controller.bin /Volumes/NODE_L432KC/
-
-  allinone:
-    cmd: mbed compile --profile develop.json --flash 
+  flash:
+    cmd: mbed compile --profile develop.json --flash
