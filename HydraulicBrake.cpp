@@ -40,7 +40,7 @@ void HydraulicBrake::update()
 
   // always disengage for zero brake (this resets our open loop control)
   // We don't want to be idle in this zone
-  if (actual < dead_dt and std::abs(error) < dead_dt) new_state = disengaging;
+  if (desired < dead_dt) new_state = disengaging;
 
   if (m_state != new_state) {
     // We have a state transition
