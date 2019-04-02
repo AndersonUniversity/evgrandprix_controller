@@ -35,9 +35,10 @@ Serial ibus_receiver(NC, D4, 115200); // uart 1
 Watchdog dog;
 iBUS ibus;
 
-
+// Tuning parameters
 const float ebrake_full = 0.5f;
 const float steering_full = 0.5f;
+const float steering_center = 0.0f;
 
 void setup() {
   traction_motor.setup();
@@ -84,7 +85,7 @@ void apply_command(const CommandMsg& cmd)
 {
   // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
 
-  steer.set_desired(steering_full * cmd.steering);
+  steer.set_desired(steering_full*cmd.steering + steering_center);
 
   if(cmd.ebrake > 0.1f){
     // engage the brake

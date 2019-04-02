@@ -1,5 +1,9 @@
 #include "TractionMotor.hpp"
 
+bool sw(bool a){
+  return not a;
+}
+
 TractionMotor::TractionMotor(PinName fwd, PinName rev, PinName foot,
                              PinName throttle, PinName regen):
     m_forward(fwd), m_reverse(rev), m_foot(foot),
@@ -12,30 +16,31 @@ TractionMotor::TractionMotor(PinName fwd, PinName rev, PinName foot,
 
 void TractionMotor::setup()
 {
+  // 10 kHz
   m_throttle.period_us(100);
   m_regen.period_us(100);
 }
 
 void TractionMotor::control(float accel, Gear gear) {
-  m_forward = gear == Gear::forward;
-  m_reverse = gear == Gear::reverse;
-  m_foot = 1;
+  m_forward = sw(gear == Gear::forward);
+  m_reverse = sw(gear == Gear::reverse);
+  m_foot = sw(1);
 
-  if (accel > 0) {
+  if (accel > 0.0f) {
     m_throttle = accel;
-    m_regen = 0;
+    m_regen = 0.0f;
   } else {
-    m_throttle = 0;
+    m_throttle = 0.0f;
     m_regen = -accel;
   }
 }
 
 void TractionMotor::idle() {
   // neutral gear
-  m_forward = 0;
-  m_reverse = 0;
-  m_foot = 0;
+  m_forward = sw(0);
+  m_reverse = sw(0);
+  m_foot = sw(0);
 
-  m_throttle = 0;
-  m_regen = 0;
+  m_throttle = 0.0f;
+  m_regen = 0.0f;
 }
