@@ -2,7 +2,8 @@
 
 SystemReport::SystemReport(uint32_t sample_rate) :
 max_thread_count(8),
-sample_time_ms(sample_rate)
+sample_time_ms(sample_rate),
+prev_idle_time(0)
 {
     thread_stats = new mbed_stats_thread_t[max_thread_count];
 
@@ -45,8 +46,6 @@ void SystemReport::report_state()
 
 void SystemReport::report_cpu_stats()
 {
-    static uint64_t prev_idle_time = 0;
-
     printf("================= CPU STATS =================\r\n");
 
     // Collect and print cpu stats
@@ -54,10 +53,11 @@ void SystemReport::report_cpu_stats()
 
     uint64_t diff = (cpu_stats.idle_time - prev_idle_time);
     uint8_t idle = (diff * 100) / (sample_time_ms * 1000);  // usec;
-    uint8_t usage = 100 - ((diff * 100) / (sample_time_ms * 1000));  // usec;
+    uint8_t usage = 100 - idle;  // usec;
     prev_idle_time = cpu_stats.idle_time;
 
-    printf("Uptime%-20lld Idle: %d%% Usage: %d%% \r\n", cpu_stats.uptime, idle, usage);
+    printf("Uptime %-20lld Idle Time %-20lld Idle: %d%% Usage: %d%% \r\n",
+     cpu_stats.uptime, cpu_stats.idle_time, idle, usage);
 }
 
 void SystemReport::report_heap_stats()

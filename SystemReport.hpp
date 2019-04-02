@@ -23,6 +23,7 @@ class SystemReport {
     uint8_t   thread_count;
     uint8_t   max_thread_count;
     uint32_t  sample_time_ms;
+    uint64_t prev_idle_time;
 
 public:
     /**
