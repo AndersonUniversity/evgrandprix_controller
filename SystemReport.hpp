@@ -29,29 +29,29 @@ public:
      *  SystemReport - Sample rate in ms is required to handle the CPU percent awake logic
      */
     SystemReport(uint32_t sample_rate);
-    ~SystemReport(void);
+    ~SystemReport();
 
     uint32_t sample_time() const { return sample_time_ms; }
 
     /**
      *  Report on each Mbed OS Platform stats API
      */
-    void report_state(void);
+    void report_state();
 
     /**
      *  Report CPU idle and awake time in terms of percentage
      */
-    void report_cpu_stats(void);
+    void report_cpu_stats();
 
     /**
      *  Report current heap stats. Current heap refers to the current amount of
      *  allocated heap. Max heap refers to the highest amount of heap allocated
      *  since reset.
      */
-    void report_heap_stats(void);
+    void report_heap_stats();
 
     /**
      *  Report active thread stats
      */
-    void report_thread_stats(void);
+    void report_thread_stats();
 };

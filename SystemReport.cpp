@@ -27,12 +27,12 @@ sample_time_ms(sample_rate)
     }
 }
 
-SystemReport::~SystemReport(void)
+SystemReport::~SystemReport()
 {
     free(thread_stats);
 }
 
-void SystemReport::report_state(void)
+void SystemReport::report_state()
 {
     report_cpu_stats();
     report_heap_stats();
@@ -43,7 +43,7 @@ void SystemReport::report_state(void)
 }
 
 
-void SystemReport::report_cpu_stats(void)
+void SystemReport::report_cpu_stats()
 {
     static uint64_t prev_idle_time = 0;
 
@@ -54,13 +54,13 @@ void SystemReport::report_cpu_stats(void)
 
     uint64_t diff = (cpu_stats.idle_time - prev_idle_time);
     uint8_t idle = (diff * 100) / (sample_time_ms * 1000);  // usec;
-    uint8_t usage = 100 - ((diff * 100) / (sample_time_ms * 1000));  // usec;;
+    uint8_t usage = 100 - ((diff * 100) / (sample_time_ms * 1000));  // usec;
     prev_idle_time = cpu_stats.idle_time;
 
-    printf("Idle: %d%% Usage: %d%% \r\n", idle, usage);
+    printf("Uptime%-20lld Idle: %d%% Usage: %d%% \r\n", cpu_stats.uptime, idle, usage);
 }
 
-void SystemReport::report_heap_stats(void)
+void SystemReport::report_heap_stats()
 {
     printf("================ HEAP STATS =================\r\n");
 
@@ -71,7 +71,7 @@ void SystemReport::report_heap_stats(void)
     printf("Max heap size: %lu\r\n", heap_stats.max_size);
 }
 
-void SystemReport::report_thread_stats(void)
+void SystemReport::report_thread_stats()
 {
     printf("================ THREAD STATS ===============\r\n");
 

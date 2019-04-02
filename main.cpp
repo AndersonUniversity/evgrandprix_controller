@@ -27,7 +27,7 @@ TractionMotor traction_motor(D11, D12, D9, A6, A1);
 SteeringLoop steer(A3, D6);
 
 // interface for linear motor for hydrolic brake actuator (uses the S2 on the Sabortooth)
-HydraulicBrake hydraulic_brake(D5);
+HydraulicBrake ebrake(D5);
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
 Serial ibus_receiver(NC, D4, 115200); // uart 1
@@ -36,12 +36,13 @@ Watchdog dog;
 iBUS ibus;
 
 
-const float hydraulic_brake_scale = 2.0f;
+const float ebrake_full = 0.5f;
+const float steering_full = 0.5f;
 
 void setup() {
   traction_motor.setup();
   traction_motor.idle();
-  hydraulic_brake.start();
+  ebrake.start();
   steer.start();
   dog.configure(0.5f);
 }
@@ -74,7 +75,7 @@ CommandMsg parse_RC(uint16_t data[])
   else if (data[3] < 1250) cmd.gear = Gear::reverse;
 
   // channel 6 is hydraulic brake position
-  cmd.ebrake = hydraulic_brake_scale * float(data[5] - 1000) / 1000.0f;
+  cmd.ebrake = ebrake_full * float(data[5] - 1000) / 1000.0f;
 
   return cmd;
 }
@@ -83,22 +84,22 @@ void apply_command(const CommandMsg& cmd)
 {
   // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
 
-  steer.set_desired(cmd.steering);
+  steer.set_desired(steering_full * cmd.steering);
 
   if(cmd.ebrake > 0.1f){
     // engage the brake
-    hydraulic_brake.set_desired(cmd.ebrake);
+    ebrake.set_desired(cmd.ebrake);
   }
   else{
     // deadzone (retract completely)
-    hydraulic_brake.disengage();
+    ebrake.disengage();
   }
 
   if (cmd.throttle_regen > 0.1f) {
     // throttle on
 
     // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
-    hydraulic_brake.disengage(); //for safety
+    ebrake.disengage(); //for safety
 
     traction_motor.control(cmd.throttle_regen, cmd.gear);
     //else we are in neutral
