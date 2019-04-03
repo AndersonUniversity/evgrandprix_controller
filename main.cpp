@@ -36,9 +36,11 @@ Watchdog dog;
 iBUS ibus;
 
 // Tuning parameters
-const float ebrake_full = 0.5f;
-const float steering_full = 0.5f;
-const float steering_center = 0.0f;
+const float ebrake_full = 1.0f;
+
+const float steering_full = 0.15f;
+const float steering_center = 0.25f;
+
 
 void setup() {
   traction_motor.setup();
@@ -156,11 +158,10 @@ int main() {
   thread.start(main_control_loop);
 
   while(true){
+    wait_ms(stats.sample_time());
     {
       mbed::ScopedLock<Mutex> lock(s_stdio_mutex);
       stats.report_state();
     }
-
-    wait_ms(stats.sample_time());
   }
 }
