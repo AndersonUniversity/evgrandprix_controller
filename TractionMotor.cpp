@@ -21,26 +21,27 @@ void TractionMotor::setup()
   m_regen.period_us(100);
 }
 
-void TractionMotor::control(float accel, Gear gear) {
+void TractionMotor::gear(Gear gear) {
   m_forward = sw(gear == Gear::forward);
   m_reverse = sw(gear == Gear::reverse);
-  m_foot = sw(1);
+}
+
+void TractionMotor::throttle(float accel) {
 
   if (accel > 0.0f) {
+    m_foot = sw(1);
     m_throttle = accel;
     m_regen = 0.0f;
   } else {
+    m_foot = sw(0);
     m_throttle = 0.0f;
     m_regen = -accel;
   }
 }
 
-void TractionMotor::idle() {
-  // neutral gear
-  m_forward = sw(0);
-  m_reverse = sw(0);
+void TractionMotor::idle()
+{
   m_foot = sw(0);
-
   m_throttle = 0.0f;
   m_regen = 0.0f;
 }

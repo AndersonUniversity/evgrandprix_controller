@@ -42,7 +42,9 @@ const float steering_center = 0.0f;
 
 void setup() {
   traction_motor.setup();
+  traction_motor.gear(Gear::neutral);
   traction_motor.idle();
+
   ebrake.start();
   steer.start();
   dog.configure(0.5f);
@@ -96,17 +98,19 @@ void apply_command(const CommandMsg& cmd)
     ebrake.disengage();
   }
 
+  traction_motor.gear(cmd.gear);
+
   if (cmd.throttle_regen > 0.1f) {
     // throttle on
 
     // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
     ebrake.disengage(); //for safety
 
-    traction_motor.control(cmd.throttle_regen, cmd.gear);
+    traction_motor.throttle(cmd.throttle_regen);
     //else we are in neutral
   } else if(cmd.throttle_regen < -0.1f) {
     // brake using regen
-    traction_motor.control(cmd.throttle_regen, cmd.gear);
+    traction_motor.throttle(cmd.throttle_regen);
   } else {
     // Dead zone
     traction_motor.idle();

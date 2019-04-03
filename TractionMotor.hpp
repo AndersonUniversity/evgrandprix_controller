@@ -21,7 +21,7 @@ public:
 
   void setup();
 
-  void control(float accel, Gear gear);
-
+  void gear(Gear gear);
+  void throttle(float accel);
   void idle();
 };
