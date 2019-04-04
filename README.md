@@ -38,6 +38,13 @@ wget http://mirrors.kernel.org/ubuntu/pool/universe/n/newlib/libnewlib-arm-none-
 sudo dpkg -i *.deb
 ```
 
+## Usage
+
+Setup `source myenv/bin/activate`
+
+Compile and flash `mbed compile --profile develop.json --flash`
+
+Console `mbed sterm -b 115200 -p /dev/ttyUSB0`
 
 
 
