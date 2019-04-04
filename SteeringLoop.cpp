@@ -10,6 +10,7 @@ m_pid()
 
 void SteeringLoop::start(){
   //init
+  m_control.period(0.02f);
   m_control.pulsewidth_us(1500);
 
   //Initialize the PID instance structure
@@ -25,7 +26,8 @@ void SteeringLoop::update()
 {
   const float desired = get_desired();
 
-  const float actual = m_encoder;
+  // FIXME The encoder only returns numbers in [0.5, 1] but it should be [0,1] so we transform it to the correct value.
+  const float actual = 2.0f*(m_encoder - 0.5f);
 
   // error is between 0 and 1
   const float error = desired - actual;

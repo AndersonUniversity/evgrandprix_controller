@@ -24,7 +24,7 @@ DigitalOut led1(LED1);
 TractionMotor traction_motor(D11, D12, D9, A6, A1);
 
 // steering control connected to the sabortooth H-bridge (S1)
-SteeringLoop steer(A3, D6);
+SteeringLoop steer(A0, D6);
 
 // interface for linear motor for hydrolic brake actuator (uses the S2 on the Sabortooth)
 HydraulicBrake ebrake(D5);
@@ -39,7 +39,7 @@ iBUS ibus;
 const float ebrake_full = 3.0f;
 
 const float steering_full = 0.15f;
-const float steering_center = 0.25f;
+const float steering_center = 0.53f;
 
 
 void setup() {
@@ -89,7 +89,7 @@ void apply_command(const CommandMsg& cmd)
 {
   // APPLY PARSED DATA TO ACTUATORS AND CONTROL LOOPS
 
-  steer.set_desired(steering_full*cmd.steering + steering_center);
+  steer.set_desired(-steering_full*cmd.steering + steering_center);
 
   if(cmd.ebrake > 0.1f){
     // engage the brake
