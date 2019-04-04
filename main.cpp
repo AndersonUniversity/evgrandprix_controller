@@ -80,7 +80,7 @@ CommandMsg parse_RC(uint16_t data[])
   else if (data[3] < 1250) cmd.gear = Gear::reverse;
 
   // channel 6 is hydraulic brake position
-  cmd.ebrake = ebrake_full * float(data[5] - 1000) / 1000.0f;
+  cmd.ebrake = float(data[5] - 1000) / 1000.0f;
 
   return cmd;
 }
@@ -93,7 +93,7 @@ void apply_command(const CommandMsg& cmd)
 
   if(cmd.ebrake > 0.1f){
     // engage the brake
-    ebrake.set_desired(cmd.ebrake);
+    ebrake.set_desired(ebrake_full * cmd.ebrake);
   }
   else{
     // deadzone (retract completely)
