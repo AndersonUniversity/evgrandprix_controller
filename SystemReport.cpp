@@ -51,13 +51,15 @@ void SystemReport::report_cpu_stats()
     // Collect and print cpu stats
     mbed_stats_cpu_get(&cpu_stats);
 
+    printf("Uptime %-20lld Idle %-20lld Sleep %-20lld Deep Sleep %-20lld\r\n",
+      cpu_stats.uptime, cpu_stats.idle_time, cpu_stats.sleep_time, cpu_stats.deep_sleep_time);
+
     uint64_t diff = (cpu_stats.idle_time - prev_idle_time);
     uint8_t idle = (diff * 100) / (sample_time_ms * 1000);  // usec;
     uint8_t usage = 100 - idle;  // usec;
     prev_idle_time = cpu_stats.idle_time;
 
-    printf("Uptime %-20lld Idle Time %-20lld Idle: %d%% Usage: %d%% \r\n",
-     cpu_stats.uptime, cpu_stats.idle_time, idle, usage);
+    printf("Idle: %d%% Usage: %d%% \r\n", idle, usage);
 }
 
 void SystemReport::report_heap_stats()

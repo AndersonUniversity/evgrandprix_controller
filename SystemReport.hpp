@@ -13,6 +13,8 @@
  *      - Heap and stack usage
  *      - Thread information
  *      - Static system information
+ *      Stats must first be enabled in mbed_app.json
+ * https://os.mbed.com/docs/mbed-os/v5.12/apis/mbed-statistics.html
  */
 class SystemReport {
     mbed_stats_heap_t   heap_stats;

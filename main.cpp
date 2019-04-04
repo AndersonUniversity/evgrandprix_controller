@@ -30,13 +30,13 @@ SteeringLoop steer(A3, D6);
 HydraulicBrake ebrake(D5);
 
 // Serial pc(USBTX, USBRX, 115200); // tx, rx
-Serial ibus_receiver(NC, D4, 115200); // uart 1
+Serial ibus_receiver(NC, D0, 115200); // uart 1
 
 Watchdog dog;
 iBUS ibus;
 
 // Tuning parameters
-const float ebrake_full = 1.0f;
+const float ebrake_full = 3.0f;
 
 const float steering_full = 0.15f;
 const float steering_center = 0.25f;
@@ -69,7 +69,7 @@ CommandMsg parse_RC(uint16_t data[])
   // channel 1 is steering
   // left is from 1000 to 1500
   // right is from 1500 to 2000
-  cmd.steering = float(data[0] - 1000) / 1000.0f;
+  cmd.steering = float(data[0] - 1500) / 500.0f;
 
   // channel 2 is throttle and regen brake (trigger control)
   cmd.throttle_regen = float(data[1] - 1500) / 500.0f;
