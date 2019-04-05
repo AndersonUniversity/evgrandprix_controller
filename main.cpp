@@ -21,7 +21,7 @@ UART2_RX is A2
 DigitalOut led1(LED1);
 
 // Traction motor interface
-TractionMotor traction_motor(D11, D12, D9, A6, A1);
+TractionMotor traction_motor(D11, D12, D9, A1, A6);
 
 // steering control connected to the sabortooth H-bridge (S1)
 SteeringLoop steer(A0, D6);
@@ -142,6 +142,29 @@ void main_control_loop()
   }
 }
 
+void dummy_control_loop()
+{
+  LOG("Starting dummy control loop\r\n");
+  while (true) {
+
+    wait(0.01f);
+    dog.service();
+
+    // status update
+    led1 = !led1;
+
+    CommandMsg cmd;
+
+    cmd.steering = 0.0f;
+    cmd.throttle_regen = 0.5f;
+    cmd.gear = Gear::forward;
+    cmd.ebrake = 0.0f;
+
+    cmd.dump();
+    apply_command(cmd);
+  }
+}
+
 // Loop delay time in ms
 SystemReport stats(10000);
 
@@ -156,6 +179,7 @@ int main() {
 
   Thread thread;
   thread.start(main_control_loop);
+  //thread.start(dummy_control_loop);
 
   while(true){
     wait_ms(stats.sample_time());

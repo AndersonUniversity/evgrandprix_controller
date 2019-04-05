@@ -11,7 +11,7 @@ private:
   DigitalOut m_reverse;
   DigitalOut m_foot;
   PwmOut m_throttle;
-  PwmOut m_regen;
+  //PwmOut m_regen;
 
 public:
   // throttle and regen must be PWM pins
