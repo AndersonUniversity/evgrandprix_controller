@@ -40,14 +40,7 @@ Watchdog::Watchdog() {
 #ifdef ST_NUCLEO
   // capture the cause of the previous reset
   /* Check if the system has resumed from IWDG reset */
-  /*
-      if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
-          wdreset = true;
-      }
-      else {
-          wdreset = false;
-      }
-  */
+  // wdreset = __HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST);
   wdreset = false;
 #endif
 }
