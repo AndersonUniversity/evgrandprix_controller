@@ -102,15 +102,16 @@ void apply_command(const CommandMsg& cmd)
 
   traction_motor.gear(cmd.gear);
 
-  if (cmd.throttle_regen > 0.1f) {
+  const float throttle_deadzone = 0.05f;
+  if (cmd.throttle_regen > throttle_deadzone) {
     // throttle on
 
     // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
-    ebrake.disengage(); //for safety
+    //ebrake.disengage(); //for safety
 
     traction_motor.throttle(cmd.throttle_regen);
     //else we are in neutral
-  } else if(cmd.throttle_regen < -0.1f) {
+  } else if(cmd.throttle_regen < -throttle_deadzone) {
     // brake using regen
     traction_motor.throttle(cmd.throttle_regen);
   } else {
@@ -174,6 +175,12 @@ int main() {
     LOG("WATCHDOG: The watchdog caused a reset *************\r\n");
 
   setup();
+
+  {
+    // Process an idle command (so the system does what is expected even if the first iBUS command does not arrive).
+    CommandMsg cmd;
+    apply_command(cmd);
+  }
 
   LOG("Starting main status loop\r\n");
 
