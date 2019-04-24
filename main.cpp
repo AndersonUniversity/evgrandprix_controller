@@ -36,7 +36,7 @@ Watchdog dog;
 iBUS ibus;
 
 // Tuning parameters
-const float ebrake_full = 3.0f;
+const float ebrake_full = 0.5f;
 
 const float steering_full = 0.15f;
 const float steering_center = 0.53f;
