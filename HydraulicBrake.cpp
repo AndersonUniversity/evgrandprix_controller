@@ -12,7 +12,8 @@ m_state(idle)
 
 void HydraulicBrake::start()
 {
-  set_desired(0.0f);
+  m_control.period_ms(20);
+  m_control.pulsewidth_us(1500);
 
   ControlLoop::start();
 }

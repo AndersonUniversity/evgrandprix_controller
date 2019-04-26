@@ -10,8 +10,9 @@ m_pid()
 
 void SteeringLoop::start(){
   //init
-  m_control.period(0.02f);
+  m_control.period_ms(20);
   m_control.pulsewidth_us(1500);
+  set_desired(0.0f);
 
   //Initialize the PID instance structure
   m_pid.Kp = 4.0;

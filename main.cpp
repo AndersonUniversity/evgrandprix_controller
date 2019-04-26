@@ -36,7 +36,7 @@ Watchdog dog;
 iBUS ibus;
 
 // Tuning parameters
-const float ebrake_full = 3.0f;
+const float ebrake_full = 0.5f;
 
 const float steering_full = 0.225f;
 const float steering_center = 0.53f;
@@ -80,7 +80,7 @@ CommandMsg parse_RC(uint16_t data[])
   else if (data[3] < 1250) cmd.gear = Gear::reverse;
 
   // channel 6 is hydraulic brake position
-  cmd.ebrake = ebrake_full * float(data[5] - 1000) / 1000.0f;
+  cmd.ebrake = float(data[5] - 1000) / 1000.0f;
 
   return cmd;
 }
@@ -93,7 +93,7 @@ void apply_command(const CommandMsg& cmd)
 
   if(cmd.ebrake > 0.1f){
     // engage the brake
-    ebrake.set_desired(cmd.ebrake);
+    ebrake.set_desired(ebrake_full * cmd.ebrake);
   }
   else{
     // deadzone (retract completely)
@@ -102,15 +102,16 @@ void apply_command(const CommandMsg& cmd)
 
   traction_motor.gear(cmd.gear);
 
-  if (cmd.throttle_regen > 0.1f) {
+  const float throttle_deadzone = 0.05f;
+  if (cmd.throttle_regen > throttle_deadzone) {
     // throttle on
 
     // TODO we should probably check the brake to make sure it is not on instead of simply disengaging
-    ebrake.disengage(); //for safety
+    //ebrake.disengage(); //for safety
 
     traction_motor.throttle(cmd.throttle_regen);
     //else we are in neutral
-  } else if(cmd.throttle_regen < -0.1f) {
+  } else if(cmd.throttle_regen < -throttle_deadzone) {
     // brake using regen
     traction_motor.throttle(cmd.throttle_regen);
   } else {
@@ -174,6 +175,12 @@ int main() {
     LOG("WATCHDOG: The watchdog caused a reset *************\r\n");
 
   setup();
+
+  {
+    // Process an idle command (so the system does what is expected even if the first iBUS command does not arrive).
+    CommandMsg cmd;
+    apply_command(cmd);
+  }
 
   LOG("Starting main status loop\r\n");
 
