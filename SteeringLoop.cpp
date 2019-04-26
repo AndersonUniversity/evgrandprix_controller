@@ -27,7 +27,8 @@ void SteeringLoop::update()
   const float desired = get_desired();
 
   // FIXME The encoder only returns numbers in [0.5, 1] but it should be [0,1] so we transform it to the correct value.
-  const float actual = 2.0f*(m_encoder - 0.5f);
+  //const float actual = 2.0f*(m_encoder - 0.5f);
+  const float actual = m_encoder;
 
   // error is between 0 and 1
   const float error = desired - actual;
