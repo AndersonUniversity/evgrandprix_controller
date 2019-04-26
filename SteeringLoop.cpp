@@ -38,7 +38,9 @@ void SteeringLoop::update()
   const float out = arm_pid_f32(&m_pid, error);
 
   // translate (0 is at 1500)
-  int pw = -int(500.0f * out) + 1500;
+  if (error>=0.2){
+	  int pw = -int(500.0f * out) + 1500;
+  }
 
   //clip
   pw = max(pw, 1000);
