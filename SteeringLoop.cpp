@@ -28,19 +28,20 @@ void SteeringLoop::update()
   const float desired = get_desired();
 
   // FIXME The encoder only returns numbers in [0.5, 1] but it should be [0,1] so we transform it to the correct value.
-  const float actual = 2.0f*(m_encoder - 0.5f);
-  //const float actual = m_encoder;
+  //const float actual = 2.0f*(m_encoder - 0.5f);
+  const float actual = m_encoder;
 
   // error is between 0 and 1
   const float error = desired - actual;
 
   //Process the PID controller
   const float out = arm_pid_f32(&m_pid, error);
-
   // translate (0 is at 1500)
-  if (error>=0.2){
-	  int pw = -int(500.0f * out) + 1500;
-  }
+
+  int pw = -int(500.0f * out) + 1500;
+
+
+
 
   //clip
   pw = max(pw, 1000);
